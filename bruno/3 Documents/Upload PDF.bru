@@ -1,0 +1,31 @@
+meta {
+  name: Upload PDF
+  type: http
+  seq: 1
+}
+
+post {
+  url: {{baseUrl}}/api/workspaces/{{workspaceId}}/documents
+  body: multipartForm
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{token}}
+}
+
+body:multipart-form {
+  file: @file()
+}
+
+script:post-response {
+  if (res.status === 201) {
+    bru.setVar("documentId", res.body.id);
+  }
+}
+
+docs {
+  Steps 3 to 7. In the Body tab, click the "file" row and choose a PDF from your computer.
+  The server extracts the text page by page, chunks it, creates embeddings and stores them in pgvector.
+  A large PDF can take a minute or more because the embeddings are made on your own machine.
+}

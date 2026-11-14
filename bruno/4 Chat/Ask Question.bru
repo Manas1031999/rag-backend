@@ -1,0 +1,27 @@
+meta {
+  name: Ask Question
+  type: http
+  seq: 1
+}
+
+post {
+  url: {{baseUrl}}/api/workspaces/{{workspaceId}}/chat
+  body: json
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{token}}
+}
+
+body:json {
+  {
+    "question": "What is this document about?"
+  }
+}
+
+docs {
+  Steps 8 to 11. The question is turned into an embedding, the closest chunks in this workspace
+  are found, and the local model writes an answer from them. "sources" shows the file and page
+  of every chunk that was used. The first answer is slow while Ollama loads the model.
+}

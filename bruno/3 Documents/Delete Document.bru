@@ -1,0 +1,19 @@
+meta {
+  name: Delete Document
+  type: http
+  seq: 3
+}
+
+delete {
+  url: {{baseUrl}}/api/workspaces/{{workspaceId}}/documents/{{documentId}}
+  body: none
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{token}}
+}
+
+docs {
+  Deletes the document and its embeddings. This cannot be undone.
+}

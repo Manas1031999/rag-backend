@@ -1,0 +1,24 @@
+# A PostgreSQL with pgvector just for this project.
+# It listens on port 5433 and only on this machine, so it never clashes with a
+# PostgreSQL already installed on the usual port 5432.
+services:
+  db:
+    image: pgvector/pgvector:pg17
+    container_name: rag-pgvector
+    environment:
+      POSTGRES_DB: ragdb
+      POSTGRES_USER: rag
+      # Local development only. The port below is bound to 127.0.0.1.
+      POSTGRES_PASSWORD: rag_local_dev
+    ports:
+      - "127.0.0.1:5433:5432"
+    volumes:
+      - rag-pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U rag -d ragdb"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+volumes:
+  rag-pgdata:

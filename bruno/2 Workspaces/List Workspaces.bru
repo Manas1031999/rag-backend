@@ -1,0 +1,25 @@
+meta {
+  name: List Workspaces
+  type: http
+  seq: 2
+}
+
+get {
+  url: {{baseUrl}}/api/workspaces
+  body: none
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{token}}
+}
+
+script:post-response {
+  if (res.status === 200 && res.body.length > 0 && !bru.getVar("workspaceId")) {
+    bru.setVar("workspaceId", res.body[0].id);
+  }
+}
+
+docs {
+  If no workspace id is saved yet (for example after restarting Bruno), this picks the newest one.
+}

@@ -1,0 +1,19 @@
+meta {
+  name: Delete Workspace
+  type: http
+  seq: 4
+}
+
+delete {
+  url: {{baseUrl}}/api/workspaces/{{workspaceId}}
+  body: none
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{token}}
+}
+
+docs {
+  Deletes the workspace together with its documents and their embeddings. This cannot be undone.
+}

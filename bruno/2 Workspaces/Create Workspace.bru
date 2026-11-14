@@ -1,0 +1,31 @@
+meta {
+  name: Create Workspace
+  type: http
+  seq: 1
+}
+
+post {
+  url: {{baseUrl}}/api/workspaces
+  body: json
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{token}}
+}
+
+body:json {
+  {
+    "name": "My First Workspace"
+  }
+}
+
+script:post-response {
+  if (res.status === 201) {
+    bru.setVar("workspaceId", res.body.id);
+  }
+}
+
+docs {
+  Step 2. Creates a workspace and saves its id for the document and chat requests.
+}

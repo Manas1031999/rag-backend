@@ -107,6 +107,10 @@ Open the `bruno` folder in [Bruno](https://www.usebruno.com) as a collection, ch
 (choose a file in the Body tab), Ask Question. The token, workspace id and document id are
 carried from one request to the next automatically.
 
+No PDF at hand? Use `samples/library-handbook.pdf`, a four-page handbook of a made-up
+library. Try "What is the yearly fee for students?" (120 rupees, page 2) or
+"How many books can a student borrow?" (6, page 3).
+
 ## Limits
 
 - Scanned PDFs (images with no text layer) are rejected: there is no OCR.

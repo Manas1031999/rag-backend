@@ -1,4 +1,7 @@
-# A PostgreSQL with pgvector just for this project.
+# Optional: a PostgreSQL with pgvector just for this project, for machines where
+# installing pgvector into an existing PostgreSQL is not wanted.
+# Start the app with DB_URL=jdbc:postgresql://localhost:5433/ragdb, DB_USERNAME=rag
+# and DB_PASSWORD=rag_local_dev to use it.
 # It listens on port 5433 and only on this machine, so it never clashes with a
 # PostgreSQL already installed on the usual port 5432.
 services:

@@ -24,7 +24,7 @@ Built with Spring Boot 3.5, Spring AI 1.1, PostgreSQL + pgvector, and Ollama.
 ## What you need
 
 - Java 21 and Maven
-- Docker Desktop (runs PostgreSQL with the pgvector extension)
+- PostgreSQL 15 or newer with the **pgvector** extension (installed, or through Docker)
 - [Ollama](https://ollama.com) running locally
 
 ## Setup
@@ -40,18 +40,25 @@ Built with Spring Boot 3.5, Spring AI 1.1, PostgreSQL + pgvector, and Ollama.
    ollama pull llama3.2
    ```
 
-2. Start the database. This runs a PostgreSQL with pgvector in Docker on port **5433**,
-   separate from any PostgreSQL already installed on port 5432:
+2. Get a PostgreSQL that has pgvector. Pick one:
 
-   ```bash
-   docker compose up -d
+   - **Your installed PostgreSQL.** Install pgvector into it (on Windows it is built from
+     source, see the [pgvector installation notes](https://github.com/pgvector/pgvector#windows)),
+     then create an empty database named `ragdb` (pgAdmin: right-click Databases, Create, Database).
+   - **Docker.** `docker compose up -d` starts one on port 5433 with everything included.
+     Then set `DB_URL=jdbc:postgresql://localhost:5433/ragdb`, `DB_USERNAME=rag` and
+     `DB_PASSWORD=rag_local_dev`.
+
+   The app creates its tables and the `vector` extension on first start, so the database
+   user must be allowed to run `CREATE EXTENSION`.
+
+3. Set the database password in the terminal you start the app from (PowerShell):
+
+   ```powershell
+   $env:DB_PASSWORD = "<your postgres password>"
    ```
 
-   The app creates its tables and the `vector` extension on first start.
-   To look at the data in pgAdmin, register a server with host `localhost`, port `5433`,
-   database `ragdb`, user `rag`, password `rag_local_dev`.
-
-3. Start the app:
+4. Start the app:
 
    ```bash
    mvn spring-boot:run
@@ -63,9 +70,9 @@ All settings are environment variables with defaults in `src/main/resources/appl
 
 | Variable | Default | Meaning |
 |----------|---------|---------|
-| `DB_URL` | `jdbc:postgresql://localhost:5433/ragdb` | Database (default is the Docker one) |
-| `DB_USERNAME` | `rag` | Database user |
-| `DB_PASSWORD` | `rag_local_dev` | Database password. Local development only: set your own anywhere else |
+| `DB_URL` | `jdbc:postgresql://localhost:5432/ragdb` | Database |
+| `DB_USERNAME` | `postgres` | Database user |
+| `DB_PASSWORD` | none | Database password |
 | `JWT_SECRET` | random at startup | At least 32 characters. Set it to keep logins across restarts |
 | `OLLAMA_BASE_URL` | `http://localhost:11434` | Ollama address |
 | `OLLAMA_CHAT_MODEL` | `llama3.2` | Model that writes answers |

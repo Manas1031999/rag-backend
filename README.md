@@ -23,46 +23,117 @@ Built with Spring Boot 3.5, Spring AI 1.1, PostgreSQL + pgvector, and Ollama.
 
 ## What you need
 
-- Java 21 and Maven
-- PostgreSQL 15 or newer with the **pgvector** extension (installed, or through Docker)
-- [Ollama](https://ollama.com) running locally
+| Thing | Why | Size |
+|-------|-----|------|
+| Java 21 and Maven | Build and run the app | |
+| [Ollama](https://ollama.com) with two models | Creates embeddings and writes answers | about 2.3 GB |
+| PostgreSQL 15 or newer with the **pgvector** extension | Stores users, workspaces and embeddings | |
 
-## Setup
+Last checked end to end on Windows 11 with PostgreSQL 18, pgvector 0.8.7 and Ollama 0.40.
 
-1. Install Ollama. The app downloads the two models (about 2.3 GB) the first time it starts.
-   To download them yourself beforehand:
+## Installing from scratch
 
-   ```bash
-   ollama pull nomic-embed-text
-   ```
+### 1. Ollama
 
-   ```bash
-   ollama pull llama3.2
-   ```
+Download the installer from [ollama.com](https://ollama.com), or on Windows:
 
-2. Get a PostgreSQL that has pgvector. Pick one:
+```powershell
+winget install Ollama.Ollama
+```
 
-   - **Your installed PostgreSQL.** Install pgvector into it (on Windows it is built from
-     source, see the [pgvector installation notes](https://github.com/pgvector/pgvector#windows)),
-     then create an empty database named `ragdb` (pgAdmin: right-click Databases, Create, Database).
-   - **Docker.** `docker compose up -d` starts one on port 5433 with everything included.
-     Then set `DB_URL=jdbc:postgresql://localhost:5433/ragdb`, `DB_USERNAME=rag` and
-     `DB_PASSWORD=rag_local_dev`.
+Then download the two models:
 
-   The app creates its tables and the `vector` extension on first start, so the database
-   user must be allowed to run `CREATE EXTENSION`.
+```bash
+ollama pull nomic-embed-text
+```
 
-3. Set the database password in the terminal you start the app from (PowerShell):
+```bash
+ollama pull llama3.2
+```
+
+Ollama keeps running in the background and starts again on every login. To stop it,
+right-click its icon in the system tray and choose Quit.
+
+### 2. PostgreSQL with pgvector
+
+pgvector is an add-on for PostgreSQL. It is not included in the PostgreSQL installer.
+Pick the route for your system.
+
+**Linux / macOS.** Use the package manager, for example `sudo apt install postgresql-18-pgvector`
+or `brew install pgvector`.
+
+**Windows, into an installed PostgreSQL.** pgvector has to be built from source:
+
+1. Install *Visual Studio Build Tools 2022* with the **Desktop development with C++**
+   workload (about 6 GB). It is needed only for this build and can be uninstalled afterwards.
 
    ```powershell
-   $env:DB_PASSWORD = "<your postgres password>"
+   winget install Microsoft.VisualStudio.2022.BuildTools --override "--quiet --wait --norestart --add Microsoft.VisualStudio.Workload.VCTools --includeRecommended"
    ```
 
-4. Start the app:
+2. Open **x64 Native Tools Command Prompt for VS 2022** with *Run as administrator* and run
+   these one by one (change `18` to your PostgreSQL version):
 
-   ```bash
-   mvn spring-boot:run
+   ```bat
+   set "PGROOT=C:\Program Files\PostgreSQL\18"
    ```
+
+   ```bat
+   cd /d %TEMP% && git clone --branch v0.8.7 https://github.com/pgvector/pgvector.git && cd pgvector
+   ```
+
+   ```bat
+   nmake /F Makefile.win
+   ```
+
+   ```bat
+   nmake /F Makefile.win install
+   ```
+
+   This copies `vector.dll` into `lib`, and `vector.control` plus the `vector--*.sql` files
+   into `share\extension`, inside the PostgreSQL folder. PostgreSQL does not need a restart
+   and existing databases are not changed.
+
+**Docker.** `docker compose up -d` starts a PostgreSQL with pgvector on port 5433. Then start
+the app with `DB_URL=jdbc:postgresql://localhost:5433/ragdb`, `DB_USERNAME=rag` and
+`DB_PASSWORD=rag_local_dev`.
+
+> Before installing Docker Desktop on Windows: it needs WSL 2, and its installer switches on
+> the Windows features *Windows Subsystem for Linux*, *Virtual Machine Platform* and *Hyper-V*.
+> They stay on after Docker Desktop is uninstalled. Inside a virtual machine Docker Desktop
+> only runs if nested virtualization is available.
+
+### 3. The database
+
+Create an empty database named `ragdb` (pgAdmin: right-click Databases, Create, Database).
+The app creates its tables and the `vector` extension on first start, so the database
+user must be allowed to run `CREATE EXTENSION`.
+
+### 4. Run
+
+Set the database password in the terminal you start the app from (PowerShell), then start:
+
+```powershell
+$env:DB_PASSWORD = "<your postgres password>"
+```
+
+```bash
+mvn spring-boot:run
+```
+
+The app is ready when the log shows `Started RagApplication`.
+
+## Uninstalling
+
+1. Drop the `ragdb` database (pgAdmin: right-click it, Delete). Do this first: its
+   `vector_store` table stops working once pgvector is gone.
+2. Remove pgvector from PostgreSQL: from the pgvector source folder run
+   `nmake /F Makefile.win uninstall` in the same admin command prompt, or delete `lib\vector.dll`,
+   `share\extension\vector.control`, `share\extension\vector--*.sql` and
+   `include\server\extension\vector` by hand.
+3. Uninstall Ollama (`winget uninstall Ollama.Ollama`) and delete the `.ollama` folder in your
+   user folder, which holds the downloaded models.
+4. Uninstall Visual Studio Build Tools if you installed it only for this.
 
 ## Settings
 
